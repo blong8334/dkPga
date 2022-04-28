@@ -1,9 +1,16 @@
 import {
   t_player,
-  t_nestedNumnber,
+  t_nestedNumber,
   t_tableau
 } from './types';
 
+/**
+ * 
+ * @param players 
+ * @param salaryCap 
+ * @param totalPlayerCount 
+ * @returns 
+ */
 export function simplex(players: t_player[], salaryCap: number, totalPlayerCount: number): number {
   const {
     tableau,
@@ -23,13 +30,20 @@ export function simplex(players: t_player[], salaryCap: number, totalPlayerCount
   return printWinners(result, solution, players, totalPlayerCount);
 }
 
+/**
+ * 
+ * @param result {t_nestedNumber}
+ * @param solution 
+ * @param players 
+ * @param totalPlayerCount 
+ * @returns 
+ */
 function printWinners(
-  result: t_nestedNumnber,
-  solution: t_nestedNumnber,
+  result: t_nestedNumber,
+  solution: t_nestedNumber,
   players: t_player[],
   totalPlayerCount: number
 ): number {
-  let totalSalary = 0;
   let totalZScore = 0;
   if (solution.length === totalPlayerCount) console.log("Found optimal.");
   for (let i = 1; i < solution.length; i++) {
@@ -37,12 +51,18 @@ function printWinners(
     if (curr[1] > players.length) {
       break;
     }
-    totalSalary += players[curr[1] - 1].salary * result[curr[0]][result[i].length - 1];
     totalZScore += players[curr[1] - 1].ffpg * result[curr[0]][result[i].length - 1];
   }
 
   return totalZScore;
 }
+
+/**
+ * 
+ * @param tableau 
+ * @param actualObj 
+ * @returns 
+ */
 function putBackObjAndConvertToCanonical(tableau: t_tableau, actualObj: number[]): t_tableau {
   const solCols = findSolutionCols(tableau);
 
@@ -56,6 +76,11 @@ function putBackObjAndConvertToCanonical(tableau: t_tableau, actualObj: number[]
   return tableau;
 }
 
+/**
+ * 
+ * @param tableau {@type t_tableau}
+ * @returns 
+ */
 function findSolutionCols(tableau: t_tableau): number[][] {
   const solCols = [];
 
@@ -79,6 +104,12 @@ function findSolutionCols(tableau: t_tableau): number[][] {
   }
   return solCols;
 }
+
+/**
+ * 
+ * @param tableau 
+ * @returns 
+ */
 function removeArtificial(tableau: t_tableau): t_tableau {
   for (let i = 0; i < tableau.length; i++) {
     const end = tableau[i].pop();
@@ -92,6 +123,11 @@ function removeArtificial(tableau: t_tableau): t_tableau {
   return tableau;
 }
 
+/**
+ * 
+ * @param tableau 
+ * @returns 
+ */
 function simplexSolver(tableau: t_tableau): t_tableau {
   const enteringletCol = enteringCol(tableau);
 
@@ -110,6 +146,13 @@ function simplexSolver(tableau: t_tableau): t_tableau {
   return simplexSolver(tableau);
 }
 
+/**
+ * 
+ * @param tableau 
+ * @param exitingletRow 
+ * @param enteringletCol 
+ * @returns 
+ */
 function rowReducer(tableau: t_tableau, exitingletRow: number, enteringletCol: number): t_tableau {
   for (let i = 0; i < tableau.length; i++) {
     if (i === exitingletRow || tableau[i][enteringletCol] === 0) {
@@ -132,6 +175,12 @@ function rowReducer(tableau: t_tableau, exitingletRow: number, enteringletCol: n
   return tableau;
 }
 
+/**
+ * 
+ * @param tableau 
+ * @param enteringletCol 
+ * @returns 
+ */
 function exitingRow(tableau: t_tableau, enteringletCol: number): number {
   const endCol = tableau[0].length - 1;
   let minRatio = Infinity;
@@ -151,6 +200,11 @@ function exitingRow(tableau: t_tableau, enteringletCol: number): number {
   return minRatioRow;
 }
 
+/**
+ * 
+ * @param tableau 
+ * @returns 
+ */
 function enteringCol(tableau: t_tableau): number | null {
   let currInd = 1;
 
@@ -163,6 +217,13 @@ function enteringCol(tableau: t_tableau): number | null {
   return null;
 }
 
+/**
+ * 
+ * @param players 
+ * @param salaryCap 
+ * @param totalPlayerCount 
+ * @returns 
+ */
 function artificialletTableauMaker(players: t_player[], salaryCap: number, totalPlayerCount: number) {
   const tableau = tableauTemplate(players);
   const colCount = tableau[0].length - 1;
@@ -193,10 +254,16 @@ function artificialletTableauMaker(players: t_player[], salaryCap: number, total
   return { tableau, actualObjective };
 }
 
+/**
+ * 
+ * @param players 
+ * @returns 
+ */
 function tableauTemplate(players: t_player[]): t_tableau {
   const tableau = new Array(players.length + 3);
 
   for (let i = 0; i < tableau.length; i++) {
+    // times two for each integer var and plus four for god only knows what
     tableau[i] = new Array(players.length * 2 + 4);
     tableau[i].fill(0);
   }

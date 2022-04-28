@@ -4,7 +4,7 @@ export type t_player = {
   ffpg: number;
 };
 export type t_players = t_player[];
-export type t_nestedNumnber = number[][];
+export type t_nestedNumber = number[][];
 export type t_tableau = number[][];
 export type t_bestLineup = {
   totalSal: number;

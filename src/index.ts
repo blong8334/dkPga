@@ -7,6 +7,7 @@ const cap = 50000;
 const maxPlayers = 6;
 const lineups = 5;
 
+const playersToSkip = '';
 const salariesFileName = 'DkSalaries.csv';
 const pathToSalaries = path.resolve(__dirname, `../salaries/${salariesFileName}`);
 
@@ -22,8 +23,11 @@ function loadSalaries(): t_players {
         ffpg: parseFloat(splitLine[8]),
       };
     })
-    .filter(({name, salary, ffpg}) => {
-      return name && name.length > 0 && salary > 0 && ffpg > 0;
+    .filter(({ name, salary, ffpg }) => {
+      if (!name || !name.length || !salary || !ffpg) {
+        return false;
+      }
+      return !playersToSkip.includes(name);
     });
 }
 

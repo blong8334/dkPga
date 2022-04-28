@@ -4,33 +4,44 @@ import {
 } from './types';
 import { simplex } from './tableauMaker';
 
-export function getBestLineup(players: t_players, salaryCap: number, totalPlayerCount: number, lineups: number): t_bestLineup {
-
+export function getBestLineup(
+  players: t_players,
+  salaryCap: number,
+  totalPlayerCount: number,
+  lineups: number
+): t_bestLineup {
   const bestLineup = findFirstBest(players, salaryCap, totalPlayerCount);
   const line_queue: t_bestLineup[] = [];
-  line_queue.push(Object.assign({}, bestLineup));
-
-  let line_count = 1;
-
   const currLineup = { totalSal: 0, totalFfpg: 0, lineup: [] };
+  let line_count = 1;
   let start = new Date();
+  
+  line_queue.push(Object.assign({}, bestLineup));
   branchAndBound(players, currLineup, salaryCap, totalPlayerCount);
+
   let end = new Date();
+  
   console.log("Program took: ", (end.getTime() - start.getTime()) / 1000);
   console.log('*** LINE QUEUE ***');
   line_queue.forEach(el => console.log(el));
+
   return line_queue[line_queue.length - 1];
 
-  function branchAndBound(currPlayerList: t_players, currLineup: t_bestLineup, currCap: number, remainingPlayers: number) {
+  function branchAndBound(
+    currPlayerList: t_players, 
+    currLineup: t_bestLineup, 
+    currCap: number, 
+    remainingPlayers: number
+  ) {
     if (currPlayerList.length + currLineup.lineup.length < totalPlayerCount) {
-      // If there are not enough players left to make a valid lineup, we are done.
       return;
     }
 
     // This is the lineup where we will add the player.
-    let addThePlayerLineup = Object.assign({}, currLineup);
+    const addThePlayerLineup = Object.assign({}, currLineup);
     // Get the next player
     const nextPlayer = currPlayerList.shift();
+
     if (!nextPlayer) {
       throw new Error('No next player');
     }
@@ -44,11 +55,11 @@ export function getBestLineup(players: t_players, salaryCap: number, totalPlayer
     // Update total lineup value
     addThePlayerLineup.totalFfpg += +nextPlayer.ffpg;
 
-    let copiedPlayerList = currPlayerList.slice();
+    const copiedPlayerList = currPlayerList.slice();
     // Update the new salary cap for the added player lineup.
-    let nextCap = currCap - nextPlayer.salary;
+    const nextCap = currCap - nextPlayer.salary;
     // Update the remaining players needed to fill our lineup.
-    let nextRemainingPlayers = remainingPlayers - 1;
+    const nextRemainingPlayers = remainingPlayers - 1;
 
     // Check if the new lineup is still valid.
     let stillValid = true;
@@ -66,7 +77,6 @@ export function getBestLineup(players: t_players, salaryCap: number, totalPlayer
         // console.log("WHOA! You're going to LOVE this lineup! ", addThePlayerLineup);
         console.log(line_count++ + ': We found a sweet lineup for you');
         // Update the best lineup.
-        // bestLineup = Object.assign({}, addThePlayerLineup);
         line_queue.push(Object.assign({}, addThePlayerLineup));
         if (line_queue.length > lineups) {
           line_queue.shift();
