@@ -9,7 +9,7 @@ export function getBestLineup(
   salaryCap: number,
   totalPlayerCount: number,
   lineups: number
-): t_bestLineup {
+): t_bestLineup[] {
   const bestLineup = findFirstBest(players, salaryCap, totalPlayerCount);
   const line_queue: t_bestLineup[] = [];
   const currLineup = { totalSal: 0, totalFfpg: 0, lineup: [] };
@@ -25,7 +25,7 @@ export function getBestLineup(
   console.log('*** LINE QUEUE ***');
   line_queue.forEach(el => console.log(el));
 
-  return line_queue[line_queue.length - 1];
+  return line_queue;
 
   function branchAndBound(
     currPlayerList: t_players, 

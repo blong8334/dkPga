@@ -1,20 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { t_players } from './types';
+import { t_bestLineup, t_players, t_player } from './types';
 import { getBestLineup } from './branchAndBound';
 
+const lineups = 10;
 const cap = 50000;
 const maxPlayers = 6;
-const lineups = 5;
-
 const playersToSkip = '';
+
 const salariesFileName = 'DkSalaries.csv';
 const pathToSalaries = path.resolve(__dirname, `../salaries/${salariesFileName}`);
 
 function loadSalaries(): t_players {
   const results = fs.readFileSync(pathToSalaries, { encoding: 'utf-8' });
   return results.split('\n')
-    .slice(1)
     .map((line) => {
       const splitLine = line.split(',');
       return {
@@ -24,16 +23,36 @@ function loadSalaries(): t_players {
       };
     })
     .filter(({ name, salary, ffpg }) => {
-      if (!name || !name.length || !salary || !ffpg) {
-        return false;
-      }
-      return !playersToSkip.includes(name);
+      return name &&
+        name.length &&
+        salary > 0 &&
+        ffpg > 0 &&
+        !playersToSkip.includes(name);
     });
+}
+
+function lineupStats(bestLineups: t_bestLineup[]) {
+  const toAdd = 1 / bestLineups.length;
+  type t_stats = { [key: string]: number };
+  const results: t_stats = {};
+  return bestLineups.reduce((stats: t_stats, result: t_bestLineup) => {
+    return result.lineup.reduce((stats: t_stats, player: t_player) => {
+      const { name } = player;
+      if (!stats[name]) {
+        stats[name] = 0;
+      }
+      stats[name] += toAdd;
+      return stats;
+    }, stats);
+  }, results)
 }
 
 function main() {
   const players = loadSalaries();
-  getBestLineup(players, cap, maxPlayers, lineups);
+  const bestLineups = getBestLineup(players, cap, maxPlayers, lineups);
+  console.log('LINEUPS: ', bestLineups.length);
+  const stats = lineupStats(bestLineups);
+  console.log('STATS: ', stats);
 }
 
 main();
