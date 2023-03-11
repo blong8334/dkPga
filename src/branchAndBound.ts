@@ -22,8 +22,6 @@ export function getBestLineup(
   let end = new Date();
   
   console.log("Program took: ", (end.getTime() - start.getTime()) / 1000);
-  console.log('*** LINE QUEUE ***');
-  line_queue.forEach(el => console.log(el));
 
   return line_queue;
 
@@ -124,7 +122,7 @@ function findFirstBest(players: t_players, salaryCap: number, totalPlayerCount: 
     if (bestLineup.lineup.length === totalPlayerCount && bestLineup.totalSal > salaryCap) {
       const leavingPlayer = bestLineup.lineup.shift();
       if (!leavingPlayer) {
-        throw new Error('No leaving pllayer');
+        throw new Error('No leaving player');
       }
       bestLineup.totalSal -= leavingPlayer.salary;
       bestLineup.totalFfpg -= leavingPlayer.ffpg;

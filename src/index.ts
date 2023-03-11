@@ -3,10 +3,20 @@ import * as path from 'path';
 import { t_bestLineup, t_players, t_player } from './types';
 import { getBestLineup } from './branchAndBound';
 
-const lineups = 10;
+const lineupsCount = 10;
 const cap = 50000;
 const maxPlayers = 6;
-const playersToSkip = '';
+const playersToAdd = [
+  'Scottie Scheffler',
+];
+const playersToSkip = [
+  'Jon Rahm',
+  'Rory McIlroy',
+  'Tom Kim',
+  'Seamus Power',
+  'Kyoung-Hoon Lee',
+
+];
 
 const salariesFileName = 'DkSalaries.csv';
 const pathToSalaries = path.resolve(__dirname, `../salaries/${salariesFileName}`);
@@ -49,9 +59,35 @@ function lineupStats(bestLineups: t_bestLineup[]) {
 
 function main() {
   const players = loadSalaries();
-  const bestLineups = getBestLineup(players, cap, maxPlayers, lineups);
-  console.log('LINEUPS: ', bestLineups.length);
-  const stats = lineupStats(bestLineups);
+  let capDeduction = 0;
+  let maxPlayersDeduction = 0;
+  let totalFffPg = 0;
+  const foundTargets = [];
+  const updatedField = players.filter((player) => {
+    if (!playersToAdd.includes(player.name)) {
+      return true;
+    }
+    console.log('Found a target', player);
+    foundTargets.push(player);
+    capDeduction += player.salary;
+    maxPlayersDeduction++;
+    totalFffPg += player.ffpg;
+  });
+  const bestLineupsWithoutTargets = getBestLineup(
+    updatedField, 
+    cap - capDeduction, 
+    maxPlayers - maxPlayersDeduction, 
+    lineupsCount,
+  );
+  const bestLineupsWithTargets = bestLineupsWithoutTargets.map(lineup => {
+    lineup.totalFfpg += totalFffPg;
+    lineup.totalSal += capDeduction;
+    lineup.lineup.push(...foundTargets);
+    return lineup;
+  });
+  bestLineupsWithTargets.forEach(el => console.log(el));
+  console.log('LINEUPS: ', bestLineupsWithTargets.length);
+  const stats = lineupStats(bestLineupsWithTargets);
   console.log('STATS: ', stats);
 }
 
