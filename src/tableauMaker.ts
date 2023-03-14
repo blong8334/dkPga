@@ -27,7 +27,7 @@ export function simplex(players: t_player[], salaryCap: number, totalPlayerCount
     return null;
   }
   const solution = findSolutionCols(result);
-  return printWinners(result, solution, players, totalPlayerCount);
+  return printWinners(result, solution, players);
 }
 
 /**
@@ -41,17 +41,15 @@ export function simplex(players: t_player[], salaryCap: number, totalPlayerCount
 function printWinners(
   result: t_nestedNumber,
   solution: t_nestedNumber,
-  players: t_player[],
-  totalPlayerCount: number
+  players: t_player[]
 ): number {
   let totalZScore = 0;
-  if (solution.length === totalPlayerCount) console.log("Found optimal.");
   for (let i = 1; i < solution.length; i++) {
     const curr = solution[i];
     if (curr[1] > players.length) {
       break;
     }
-    totalZScore += players[curr[1] - 1].ffpg * result[curr[0]][result[i].length - 1];
+    totalZScore += players[curr[1] - 1].score * result[curr[0]][result[i].length - 1];
   }
 
   return totalZScore;
@@ -236,7 +234,7 @@ function artificialletTableauMaker(players: t_player[], salaryCap: number, total
   tableau[0][colCount - 1] = -1;
 
   for (let i = 0; i < players.length; i++) {
-    actualObjective[i] = players[i].ffpg;
+    actualObjective[i] = players[i].score;
     tableau[1][i + 1] = players[i].salary;
     tableau[2][i + 1] = 1;
     tableau[xsRow + i][xCol + i] = 1;

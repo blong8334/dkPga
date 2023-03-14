@@ -1,45 +1,29 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { t_bestLineup, t_players, t_player } from './types';
+import { t_bestLineup, t_player } from './types';
 import { getBestLineup } from './branchAndBound';
+import {loadDkData, loadPlayerStats} from './fileReaders';
 
-const lineupsCount = 10;
+const header = 'G,G,G,G,G,G,,Instructions';
+const lineupsCount = 5;
 const cap = 50000;
 const maxPlayers = 6;
 const playersToAdd = [
-  'Scottie Scheffler',
 ];
 const playersToSkip = [
-  'Jon Rahm',
-  'Rory McIlroy',
-  'Tom Kim',
-  'Seamus Power',
-  'Kyoung-Hoon Lee',
-
+  // 'Ryan Gerard'
 ];
 
-const salariesFileName = 'DkSalaries.csv';
-const pathToSalaries = path.resolve(__dirname, `../salaries/${salariesFileName}`);
+const scoreFields = {
+  // 'SG: Total': 100,
+  // 'SG: Tee-to-Green': 100,
+  // 'SG: Off-the-Tee': 100,
+  'SG: Approach the Green': 100,
+  'SG: Around-the-Green': 100,
+  // 'SG: Putting': 100,
+};
 
-function loadSalaries(): t_players {
-  const results = fs.readFileSync(pathToSalaries, { encoding: 'utf-8' });
-  return results.split('\n')
-    .map((line) => {
-      const splitLine = line.split(',');
-      return {
-        name: splitLine[2],
-        salary: parseInt(splitLine[5]),
-        ffpg: parseFloat(splitLine[8]),
-      };
-    })
-    .filter(({ name, salary, ffpg }) => {
-      return name &&
-        name.length &&
-        salary > 0 &&
-        ffpg > 0 &&
-        !playersToSkip.includes(name);
-    });
-}
+const pathToResults = path.resolve(__dirname, `../out/results.csv`);
 
 function lineupStats(bestLineups: t_bestLineup[]) {
   const toAdd = 1 / bestLineups.length;
@@ -58,12 +42,13 @@ function lineupStats(bestLineups: t_bestLineup[]) {
 }
 
 function main() {
-  const players = loadSalaries();
+  const players = loadDkData(playersToSkip);
+  const playersWithStats = loadPlayerStats(players, scoreFields);
   let capDeduction = 0;
   let maxPlayersDeduction = 0;
-  let totalFffPg = 0;
+  let totalScore = 0;
   const foundTargets = [];
-  const updatedField = players.filter((player) => {
+  const updatedField = playersWithStats.filter((player) => {
     if (!playersToAdd.includes(player.name)) {
       return true;
     }
@@ -71,7 +56,7 @@ function main() {
     foundTargets.push(player);
     capDeduction += player.salary;
     maxPlayersDeduction++;
-    totalFffPg += player.ffpg;
+    totalScore += player.score;
   });
   const bestLineupsWithoutTargets = getBestLineup(
     updatedField, 
@@ -80,7 +65,6 @@ function main() {
     lineupsCount,
   );
   const bestLineupsWithTargets = bestLineupsWithoutTargets.map(lineup => {
-    lineup.totalFfpg += totalFffPg;
     lineup.totalSal += capDeduction;
     lineup.lineup.push(...foundTargets);
     return lineup;
@@ -89,6 +73,14 @@ function main() {
   console.log('LINEUPS: ', bestLineupsWithTargets.length);
   const stats = lineupStats(bestLineupsWithTargets);
   console.log('STATS: ', stats);
+  let csv = header + '\n';
+  bestLineupsWithTargets.forEach(lineup => {
+    lineup.lineup.forEach(player => {
+      csv += player.id + ",";
+    })
+    csv += '\n';
+  });
+  fs.writeFileSync(pathToResults, csv);
 }
 
 main();

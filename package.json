@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "ts-node src/index"
+    "test": "ts-node src/index",
+    "test-get": "ts-node src/statRequester"
   },
   "author": "",
   "license": "ISC",
